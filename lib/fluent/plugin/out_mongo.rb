@@ -127,7 +127,7 @@ class MongoOutput < BufferedOutput
     collection_name = @tag_mapped ? chunk.key : @collection
     if @date_mapped
       collection_name << "."
-	time_str = @timef.format(Engine.now)
+      time_str = Engine.now
       collection_name << time_str
     end
     operate(get_or_create_collection(collection_name), collect_records(chunk))
