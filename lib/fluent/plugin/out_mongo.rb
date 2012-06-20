@@ -29,7 +29,7 @@ class MongoOutput < BufferedOutput
   # date mapping mode
   config_param :date_mapped, :bool, :default => false
 
-  config_param :time_slice_format, :string, :default => 'y%Y.m%m.d%d'
+  config_param :time_slice_format, :string, :default => '.y%Y.m%m.d%d'
 
   attr_reader :collection_options, :connection_options
 
@@ -57,6 +57,10 @@ class MongoOutput < BufferedOutput
 
     if conf.has_key?('date_mapped')
       @date_mapped = true
+    end
+
+    if conf.has_key?('sogamo')
+      @sogamo = true
     end
 
     raise ConfigError, "normal mode requires collection parameter" if !@tag_mapped and !conf.has_key?('collection')
@@ -125,11 +129,18 @@ class MongoOutput < BufferedOutput
   def write(chunk)
     # TODO: See emit comment
     collection_name = @tag_mapped ? chunk.key : @collection
+    if @sogamo
+      collection_name_array = collection_name.split(".", 2)
+      collection_name = collection_name_array[0]
+    end
     if @date_mapped
-      collection_name << "."
       time1 = Time.new
       time_str = time1.strftime(@time_slice_format)
       collection_name << time_str
+    end
+    if @sogamo
+      collection_name << "."
+      collection_name << collection_name_array[1]
     end
     operate(get_or_create_collection(collection_name), collect_records(chunk))
   end
