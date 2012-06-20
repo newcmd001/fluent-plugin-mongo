@@ -127,7 +127,7 @@ class MongoOutput < BufferedOutput
     if @date_mapped
       collection_name << "."
       time1 = Time.new
-      time_str = timef.format(time1)
+      time_str = time1.strftime(@time_slice_format)
       collection_name << time_str
     end
     operate(get_or_create_collection(collection_name), collect_records(chunk))
