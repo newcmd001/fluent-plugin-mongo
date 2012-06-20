@@ -130,8 +130,10 @@ class MongoOutput < BufferedOutput
     # TODO: See emit comment
     collection_name = @tag_mapped ? chunk.key : @collection
     if @sogamo
-      collection_name_array = collection_name.split(".", 2)
+      collection_name_array = collection_name.split(".", 3)
       collection_name = collection_name_array[0]
+      collection_name << "."
+      collection_name << collection_name_array[1]
     end
     if @date_mapped
       time1 = Time.new
@@ -140,7 +142,7 @@ class MongoOutput < BufferedOutput
     end
     if @sogamo
       collection_name << "."
-      collection_name << collection_name_array[1]
+      collection_name << collection_name_array[2]
     end
     operate(get_or_create_collection(collection_name), collect_records(chunk))
   end
