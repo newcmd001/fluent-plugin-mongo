@@ -25,6 +25,9 @@ class MongoOutput < BufferedOutput
   config_param :tag_mapped, :bool, :default => false
   config_param :remove_tag_prefix, :string, :default => nil
 
+  # date mapping mode
+  config_param :date_mapped, :bool, :default => false
+
   attr_reader :collection_options
 
   def initialize
@@ -46,6 +49,11 @@ class MongoOutput < BufferedOutput
     else
       @disable_collection_check = false if @disable_collection_check.nil?
     end
+
+    if conf.has_key?('date_mapped')
+      @date_mapped = true
+    end
+
     raise ConfigError, "normal mode requires collection parameter" if !@tag_mapped and !conf.has_key?('collection')
 
     if remove_tag_prefix = conf['remove_tag_prefix']
@@ -103,6 +111,10 @@ class MongoOutput < BufferedOutput
   def write(chunk)
     # TODO: See emit comment
     collection_name = @tag_mapped ? chunk.key : @collection
+    if(conf['date_mapped'])
+      collection_name << "."
+      collection_name << "Yyyyy.Mmm.Ddd"
+    end
     operate(get_or_create_collection(collection_name), collect_records(chunk))
   end
 
