@@ -29,6 +29,8 @@ class MongoOutput < BufferedOutput
   # date mapping mode
   config_param :date_mapped, :bool, :default => false
 
+  config_param :time_slice_format, :string, :default => 'y%Y.m%m.d%d'
+
   attr_reader :collection_options, :connection_options
 
   def initialize
@@ -39,6 +41,8 @@ class MongoOutput < BufferedOutput
     @clients = {}
     @connection_options = {}
     @collection_options = {:capped => false}
+
+    @localtime = true
   end
 
   def configure(conf)
@@ -56,6 +60,15 @@ class MongoOutput < BufferedOutput
     end
 
     raise ConfigError, "normal mode requires collection parameter" if !@tag_mapped and !conf.has_key?('collection')
+
+    # TODO timezone
+    if conf['utc']
+      @localtime = false
+    elsif conf['localtime']
+      @localtime = true
+    end
+
+    @timef = TimeFormatter.new(@time_slice_format, @localtime)
 
     if remove_tag_prefix = conf['remove_tag_prefix']
       @remove_tag_prefix = Regexp.new('^' + Regexp.escape(remove_tag_prefix))
@@ -114,7 +127,8 @@ class MongoOutput < BufferedOutput
     collection_name = @tag_mapped ? chunk.key : @collection
     if @date_mapped
       collection_name << "."
-      collection_name << "Yyyyy.Mmm.Ddd"
+	time_str = @timef.format(time)
+      collection_name << time_str
     end
     operate(get_or_create_collection(collection_name), collect_records(chunk))
   end
