@@ -111,7 +111,7 @@ class MongoOutput < BufferedOutput
   def write(chunk)
     # TODO: See emit comment
     collection_name = @tag_mapped ? chunk.key : @collection
-    if @data_mapped
+    if @date_mapped
       collection_name << "."
       collection_name << "Yyyyy.Mmm.Ddd"
     end
