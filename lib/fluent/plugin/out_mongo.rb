@@ -27,6 +27,7 @@ class MongoOutput < BufferedOutput
 
   # date mapping mode
   config_param :date_mapped, :bool, :default => false
+  config_param :index, :string, :default => nil
 
   config_param :time_slice_format, :string, :default => '.y%Y.m%m.d%d'
 
@@ -212,6 +213,9 @@ class MongoOutput < BufferedOutput
       end
     else
       collection = @db.create_collection(collection_name, @collection_options)
+      if conf.has_key?('index')
+        collection.create_index(@index)
+      end
     end
 
     @clients[collection_name] = collection
