@@ -131,7 +131,7 @@ class MongoOutput < BufferedOutput
     # TODO: See emit comment
     collection_name = @tag_mapped ? chunk.key : @collection
     if @sogamo
-      collection_name_array = collection_name.split(".", 3)
+      collection_name_array = collection_name.split(".", 4)
       collection_name = collection_name_array[0]
       collection_name << "."
       collection_name << collection_name_array[1]
@@ -144,8 +144,9 @@ class MongoOutput < BufferedOutput
     if @sogamo
       collection_name << "."
       collection_name << collection_name_array[2]
+      collection_index = collection_name_array[3]
     end
-    operate(get_or_create_collection(collection_name), collect_records(chunk))
+    operate(get_or_create_collection(collection_name, collection_index), collect_records(chunk))
   end
 
   private
@@ -205,7 +206,7 @@ class MongoOutput < BufferedOutput
     formatted
   end
 
-  def get_or_create_collection(collection_name)
+  def get_or_create_collection(collection_name, collection_index)
     collection_name = format_collection_name(collection_name)
     return @clients[collection_name] if @clients[collection_name]
 
@@ -222,9 +223,7 @@ class MongoOutput < BufferedOutput
       end
     else
       collection = @db.create_collection(collection_name, @collection_options)
-      if conf.has_key?('index')
-        collection.create_index(@index)
-      end
+      collection.create_index(collection_index)
     end
 
     @clients[collection_name] = collection
