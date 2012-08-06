@@ -128,7 +128,6 @@ class MongoOutput < BufferedOutput
   end
 
   def write(chunk)
-    chunk.ip_address = request.env['REMOTE_ADDR']
     # TODO: See emit comment
     collection_name = @tag_mapped ? chunk.key : @collection
     if @sogamo
