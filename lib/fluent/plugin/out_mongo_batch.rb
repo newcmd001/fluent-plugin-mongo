@@ -4,65 +4,14 @@ module Fluent
 class MongoBatchOutput < MongoOutput
   Fluent::Plugin.register_output('mongo_batch', self)
 
-  def configure(conf)
-    super
-
-    if conf.has_key?('tag_mapped')
-      @tag_mapped = true
-      @disable_collection_check = true if @disable_collection_check.nil?
-    else
-      @disable_collection_check = false if @disable_collection_check.nil?
-    end
-
-    if conf.has_key?('date_mapped')
-      @date_mapped = true
-    end
-
-    if conf.has_key?('sogamo')
-      @sogamo = true
-    end
-
-    raise ConfigError, "normal mode requires collection parameter" if !@tag_mapped and !conf.has_key?('collection')
-
-    # TODO timezone
-    if conf['utc']
-      @localtime = false
-    elsif conf['localtime']
-      @localtime = true
-    end
-
-    @timef = TimeFormatter.new(@time_slice_format, @localtime)
-
-    if remove_tag_prefix = conf['remove_tag_prefix']
-      @remove_tag_prefix = Regexp.new('^' + Regexp.escape(remove_tag_prefix))
-    end
-
-    # capped configuration
-    if conf.has_key?('capped')
-      raise ConfigError, "'capped_size' parameter is required on <store> of Mongo output" unless conf.has_key?('capped_size')
-      @collection_options[:capped] = true
-      @collection_options[:size] = Config.size_value(conf['capped_size'])
-      @collection_options[:max] = Config.size_value(conf['capped_max']) if conf.has_key?('capped_max')
-    end
-
-    @connection_options[:safe] = @safe
-
-    # MongoDB uses BSON's Date for time.
-    def @timef.format_nocache(time)
-      time
-    end
-
-    $log.debug "Setup mongo configuration: mode = #{@tag_mapped ? 'tag mapped' : 'normal'}"
-  end
-
   def format(tag, time, record)
     [time, record].to_msgpack
   end
 
   def emit(tag, es, chain)
     # TODO: Should replacement using eval in configure?
+    # Fluent::Engine.emit(tag, time, record)
 $log.warn "tag: " + tag
-$log.warn "es: " + es
 $log.warn "chain: " + chain
     if @tag_mapped
       super(tag, es, chain, tag)
