@@ -11,8 +11,7 @@ class MongoBatchOutput < MongoOutput
   def emit(tag, es, chain)
     # TODO: Should replacement using eval in configure?
     # Fluent::Engine.emit(tag, time, record)
-$log.warn "tag: " + tag
-$log.warn "chain: " + chain
+	$log.warn "tag: " + tag
     if @tag_mapped
       super(tag, es, chain, tag)
     else
