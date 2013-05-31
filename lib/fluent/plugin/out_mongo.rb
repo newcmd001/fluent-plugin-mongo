@@ -100,7 +100,7 @@ class MongoOutput < BufferedOutput
 
   def start
     # Non tag mapped mode, we can check collection configuration before server start.
-    get_or_create_collection(@collection) unless @tag_mapped
+    get_or_create_collection(@collection, @index) unless @tag_mapped
 
     # From configure for avoding complex method dependency...
     @buffer.buffer_chunk_limit = available_buffer_chunk_limit
@@ -223,7 +223,9 @@ class MongoOutput < BufferedOutput
       end
     else
       collection = @db.create_collection(collection_name, @collection_options)
-      collection.create_index(collection_index)
+      unless collection_index.nil?
+        collection.create_index(collection_index)
+      end
     end
 
     @clients[collection_name] = collection
